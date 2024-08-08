@@ -1,0 +1,70 @@
+const puppeteer = require('puppeteer');
+const fs = require('fs');
+
+(async () => {
+  let browser;
+  try {
+ 
+    browser = await puppeteer.launch({ headless: true }); // Set headless to true if you don't need to see the browser UI
+    const page = await browser.newPage();
+
+
+    await page.setRequestInterception(true);
+
+
+    let databaseRequests = [];
+
+
+    page.on('request', (request) => {
+      const url = request.url();
+   
+      if (url.includes('db') || url.includes('database') || url.includes('api')) {
+        databaseRequests.push({
+          url: url,
+          method: request.method(),
+          headers: request.headers(),
+          postData: request.postData() || null
+        });
+      }
+      request.continue(); // Continue the request
+    });
+
+
+    page.on('response', async (response) => {
+      const url = response.url();
+      // If response was previously logged as database request, log the response
+      if (databaseRequests.some(req => req.url === url)) {
+        const responseData = await response.text();
+        const requestIndex = databaseRequests.findIndex(req => req.url === url);
+        if (requestIndex !== -1) {
+          databaseRequests[requestIndex].response = {
+            status: response.status(),
+            headers: response.headers(),
+            body: responseData
+          };
+        }
+      }
+    });
+
+  
+    const targetUrl = 'https://www.hackthebox.com/'; // Replace with your target URL
+    await page.goto(targetUrl);
+
+
+
+    const dataToSave = databaseRequests.map(req => {
+      return `Request URL: ${req.url}\nMethod: ${req.method}\nHeaders: ${JSON.stringify(req.headers, null, 2)}\nPost Data: ${req.postData}\nResponse Status: ${req.response ? req.response.status : 'N/A'}\nResponse Headers: ${req.response ? JSON.stringify(req.response.headers, null, 2) : 'N/A'}\nResponse Body: ${req.response ? req.response.body : 'N/A'}\n\n`;
+    }).join('\n');
+
+    fs.writeFileSync('database_requests.txt', dataToSave);
+
+    console.log('Database requests and responses have been saved to database_requests.txt');
+  } catch (error) {
+    console.error('An error occurred:', error);
+  } finally {
+    
+    if (browser) {
+      await browser.close();
+    }
+  }
+})();

@@ -1,3 +1,18 @@
+//Helloo Poppit :)
+
+The inception script will do the following:
+
+    1...Request Interception: Captures all network requests and checks if they contain keywords that suggest a database or API request. Adjust the keywords based on your needs.
+    2...Response Handling: Logs the responses corresponding to the database requests.
+    3...File Writing: Collects all database requests and responses and writes them to database_requests.txt.
+
+--The script uses basic string matching to determine if a request is related to a database.
+- Captures cookies and Auth Tokens connected to the database endpoints..
+
+
+
+
+
 const puppeteer = require('puppeteer');
 const fs = require('fs');
 

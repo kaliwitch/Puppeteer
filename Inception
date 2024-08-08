@@ -20,7 +20,7 @@ const fs = require('fs');
   let browser;
   try {
  
-    browser = await puppeteer.launch({ headless: true }); // Set headless to true if you don't need to see the browser UI
+    browser = await puppeteer.launch({ headless: true }); 
     const page = await browser.newPage();
 
 

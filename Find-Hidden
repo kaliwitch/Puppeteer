@@ -1,0 +1,39 @@
+// An easy and tweaked snippet to find hidden (and sometimes forbidden) links assoicated with a Domain.
+Like log in pages that are hidden in the sub urls for example. 
+** Not made for publics eyes? 
+We can find them with Puppeteer.....
+
+
+const puppeteer = require('puppeteer');
+
+(async () => {
+    try {
+        // Launch a headless browser
+        const browser = await puppeteer.launch({ headless: true }); 
+        const page = await browser.newPage();
+
+        // Go to the target URL
+        await page.goto('https://www.geeksforgeeks.org/', { waitUntil: 'networkidle2' });
+
+        // Extract email addresses
+        const emails = await page.evaluate(() => {
+            const emailElements = document.querySelectorAll('a[href^="mailto:"]');
+            return Array.from(emailElements).map(el => el.href.replace('mailto:', ''));
+        });
+
+        // Extract all links
+        const links = await page.evaluate(() => {
+            return Array.from(document.querySelectorAll('a')).map(el => el.href);
+        });
+
+        // Log results
+        console.log('Emails:', emails);
+        console.log('Links:', links);
+
+        // Close the browser
+        await browser.close();
+    } catch (error) {
+        console.error('Error:', error);
+    }
+})();
+
